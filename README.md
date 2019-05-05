@@ -8,9 +8,10 @@ The library provides the following features:
 - Initializes basic font cache for text using truetype font. 
 - Sets up and handles `requestAnimationFrame` callback from the browser. 
 
-##Concept 
+## Concept 
 go-canvas takes an alternate approach to the current common methods for using canvas, allowing all drawing primitives to be done totaly with go code, without calling JS. 
 
+### standard syscall way
 In a standard WASM application for canvas, the go code must create a function that responds to `requestAnimationFrame` callbacks, and has to do complete rendering within that call.  Also It to interacts with the canvas drawing primitives via the syscall/js functions and context switches,  i.e. 
 ```go
     laserCtx.Call("beginPath")
@@ -19,8 +20,9 @@ In a standard WASM application for canvas, the go code must create a function th
 	laserCtx.Call("closePath")
 ```
 
-Apart from messy JS calls, which couldn't easily be checked at compile time, one other downside of this I didn't like, is it forces a full redraw every Frame, even if nothing changed on that canvas.  
+Apart from messy JS calls, which couldn't easily be checked at compile time, one other downside of this I didn't like, is it forces a full redraw every frame, even if nothing changed on that canvas.  
 
+### go native way
 go-canvas seperates the drawing, from the `requestAnimationFrame`, and does all drawing with go.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using the one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites, and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
 
 This shadow Image buffer is then copied over to the browser canvas buffer, each `requestAnimationFrame`, at whatever rate the browser requests.  The handling of the callback, and copy is done automatically within the library. 
@@ -43,7 +45,7 @@ A simple way to cause the code to draw the frame on schedule, independant from t
 If however your image is only updated from either user input, or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  For all other cycles of the `requestAnimationFrame` it just copies the buffer over, and nothing changes. 
 
 
-##Demo
+## Demo
 A simple demo can be found in  ./demo directory.  
 This is a shamless rewrite of the 'Moving red Laser' demo by Martin Olsansky https://medium.freecodecamp.org/webassembly-with-golang-is-fun-b243c0e34f02
 
