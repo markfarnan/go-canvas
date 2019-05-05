@@ -1,0 +1,24 @@
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<title>Go WebAssembly - Plot</title>
+		<meta name="author" content="Mark Farnan" />
+		<meta name="description" content="Prototype PLotter with GO, Canvas and WebAssembly" />
+		<meta name="theme-color" content="#000000" />
+		<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+	  	<style>body{height:100%;width:100%;padding:0;margin:0;background-color:#FFFFFF;color:#000000;font-family:Arial,Helvetica,sans-serif}</style>
+	
+		<script type="text/javascript" src="./wasm_exec.js"></script>
+		<script>
+			const go = new Go();
+			WebAssembly.instantiateStreaming(fetch('main.wasm'),go.importObject).then( res=> {
+				go.run(res.instance)	
+			})
+		</script>
+	<style>
+	</style>
+	</head>
+	<body>
+		<span style="position:absolute">by Mark Farnan - Go-Canvas WebAssembly <a href="https://github.com/markfarnan/go-canvas">https://github.com/markfarnan/go-canvas</a></span>
+	</body>
+</html>
