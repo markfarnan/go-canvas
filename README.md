@@ -14,10 +14,10 @@ go-canvas takes an alternate approach to the current common methods for using ca
 ### standard syscall way
 In a standard WASM application for canvas, the go code must create a function that responds to `requestAnimationFrame` callbacks, and has to do complete rendering within that call.  Also It to interacts with the canvas drawing primitives via the syscall/js functions and context switches,  i.e. 
 ```go
-    laserCtx.Call("beginPath")
-	laserCtx.Call("arc", gs.laserX, gs.laserY, gs.laserSize, 0, math.Pi*2, false)
-	laserCtx.Call("fill")
-	laserCtx.Call("closePath")
+laserCtx.Call("beginPath")
+laserCtx.Call("arc", gs.laserX, gs.laserY, gs.laserSize, 0, math.Pi*2, false)
+laserCtx.Call("fill")
+laserCtx.Call("closePath")
 ```
 
 Apart from messy JS calls, which couldn't easily be checked at compile time, one other downside of this I didn't like, is it forces a full redraw every frame, even if nothing changed on that canvas.  
@@ -30,15 +30,15 @@ This shadow Image buffer is then copied over to the browser canvas buffer, each 
 Drawing therefore, is pure **go**  i.e. 
 
 ```go
-    gc := canvas.Gc()  // Grab the graphic context for drawing to shadow image frame
-	// draws red 🔴 laser
-	gc.SetFillColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
-	gc.SetStrokeColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
+gc := canvas.Gc()  // Grab the graphic context for drawing to shadow image frame
+// draws red 🔴 laser
+gc.SetFillColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
+gc.SetStrokeColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
 
-	gc.BeginPath()
-	gc.ArcTo(gs.laserX, gs.laserY, gs.laserSize, gs.laserSize, 0, math.Pi*2)
-	gc.FillStroke()
-	gc.Close()
+gc.BeginPath()
+gc.ArcTo(gs.laserX, gs.laserY, gs.laserSize, gs.laserSize, 0, math.Pi*2)
+gc.FillStroke()
+gc.Close()
 ```
 A simple way to cause the code to draw the frame on schedule, independant from the browsers callbacks, is to use `time.Tick`.  An example is in the demo app below. 
 
