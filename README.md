@@ -21,12 +21,12 @@ laserCtx.Call("fill")
 laserCtx.Call("closePath")
 ```
 
-Downside of this approach for me are  messy JS calls which can't easily be checked at compile time and forcing an full redraw every frame, even if nothing changed on that canvas, or changes much slower than the requested frame rate. 
+Downsides of this approach (for me at least),  are messy JS calls which can't easily be checked at compile time and forcing an full redraw every frame, even if nothing changed on that canvas or changes much slower than the requested frame rate. 
 
 ### go native way
-go-canvas seperates the drawing, from the `requestAnimationFrame`, and does all drawing with go.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using the one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites, and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
+go-canvas seperates the frame drawing from the `requestAnimationFrame` and does all drawing with the go-wasm application, without calling JS.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using the one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites, and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
 
-This shadow Image buffer is then copied over to the browser canvas buffer, each `requestAnimationFrame`, at whatever rate the browser requests.  The handling of the callback, and copy is done automatically within the library. 
+This shadow Image buffer is then copied over to the browser canvas buffer during each `requestAnimationFrame` callback, at whatever rate the browser requests.  The handling of the callback and copy is done automatically within the library. 
 
 Drawing therefore, is pure **go**  i.e. 
 
