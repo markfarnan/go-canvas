@@ -1,6 +1,6 @@
 # go-canvas
 
-go-canvas is a pure **go**+**webassembly** Library for efficiently drawing on a html5 `canvas` element within the browser from go, without requiring calls back to JS to utilise canvas drawing functions.  
+go-canvas is a pure **go**+**webassembly** Library for efficiently drawing on a html5 `canvas` element within the browser from go without requiring calls back to JS to utilise canvas drawing functions.  
 
 The library provides the following features:
 - Abstracts away the initial DOM interactions to setup the canvas. 
@@ -24,7 +24,7 @@ laserCtx.Call("closePath")
 Downsides of this approach (for me at least),  are messy JS calls which can't easily be checked at compile time and forcing an full redraw every frame, even if nothing changed on that canvas or changes much slower than the requested frame rate. 
 
 ### go native way
-go-canvas seperates the frame drawing from the `requestAnimationFrame` and does all drawing with the go-wasm application, without calling JS.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using the one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites, and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
+go-canvas seperates the frame drawing from the `requestAnimationFrame` and does all drawing with the go-wasm application, without calling JS.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
 
 This shadow Image buffer is then copied over to the browser canvas buffer during each `requestAnimationFrame` callback, at whatever rate the browser requests.  The handling of the callback and copy is done automatically within the library. 
 
@@ -43,7 +43,7 @@ gc.Close()
 ```
 A simple way to cause the code to draw the frame on schedule, independant from the browsers callbacks, is to use `time.Tick`.  An example is in the demo app below. 
 
-If however your image is only updated from either user input, or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  For all other cycles of the `requestAnimationFrame` it just copies the buffer over, and nothing changes. 
+If however your image is only updated from user input or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  For all other cycles of the `requestAnimationFrame` it just copies the buffer over, and nothing changes. 
 
 ### Known issues !
 There is currently a likley race condition for long draw functions, where the `requestAnimationFrame` may get a partially completed image buffer.  This is more likley the longer the user render operation takes.    Currently think how best to handle this, ideally without locks. 
