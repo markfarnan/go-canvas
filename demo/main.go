@@ -68,5 +68,4 @@ func Render(t time.Time) {
 	draw2dkit.Circle(gc, gs.laserX, gs.laserY, gs.laserSize)
 	gc.FillStroke()
 	gc.Close()
-
 }
