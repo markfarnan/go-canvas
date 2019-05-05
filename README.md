@@ -12,7 +12,8 @@ The library provides the following features:
 go-canvas takes an alternate approach to the current common methods for using canvas, allowing all drawing primitives to be done totaly with go code, without calling JS. 
 
 ### standard syscall way
-In a standard WASM application for canvas, the go code must create a function that responds to `requestAnimationFrame` callbacks, and has to do complete rendering within that call.  Also It to interacts with the canvas drawing primitives via the syscall/js functions and context switches,  i.e. 
+In a standard WASM application for canvas, the go code must create a function that responds to `requestAnimationFrame` callbacks and renders the frame within that call.   It interacts with the canvas drawing primitives via the syscall/js functions and context switches,  i.e. 
+
 ```go
 laserCtx.Call("beginPath")
 laserCtx.Call("arc", gs.laserX, gs.laserY, gs.laserSize, 0, math.Pi*2, false)
@@ -20,7 +21,7 @@ laserCtx.Call("fill")
 laserCtx.Call("closePath")
 ```
 
-Apart from messy JS calls, which couldn't easily be checked at compile time, one other downside of this I didn't like, is it forces a full redraw every frame, even if nothing changed on that canvas.  
+Downside of this approach for me are  messy JS calls which can't easily be checked at compile time and forcing an full redraw every frame, even if nothing changed on that canvas, or changes much slower than the requested frame rate. 
 
 ### go native way
 go-canvas seperates the drawing, from the `requestAnimationFrame`, and does all drawing with go.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using the one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites, and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
