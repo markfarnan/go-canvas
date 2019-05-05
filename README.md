@@ -44,6 +44,9 @@ A simple way to cause the code to draw the frame on schedule, independant from t
 
 If however your image is only updated from either user input, or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  For all other cycles of the `requestAnimationFrame` it just copies the buffer over, and nothing changes. 
 
+### Known issues !
+There is currently a likley race condition for long draw functions, where the `requestAnimationFrame` may get a partially completed image buffer.  This is more likley the longer the user render operation takes.    Currently think how best to handle this, ideally without locks. 
+
 
 # Demo
 A simple demo can be found in  ./demo directory.  
@@ -59,9 +62,9 @@ Live Demo available at : https://markfarnan.github.io/go-canvas
 
 
 # Future
-This library was knocked up quickly after a weekend of investigation, and posted on request by the folks on #webassembly on Gophers Slack.  right now it is very v0.001, user beware !
+This library was written after a weekend of investigation and posted on request for the folks on #webassembly on Gophers Slack.  Right now it is very v0.001, user beware !
 
-I intend to extend it further, time permitting, into a more fully fledged support for all things go-canvas-wasm related, using this image frame method.   
+I intend to extend it further, time permitting, into fully fledged support package for all things go-canvas-wasm related, using this image frame method.   
 
 Several of the ideas i'm considering are: 
 - [ ] Support for layered canvas, at least 3 for 'background', 'action'  and 'user interaction'
@@ -69,6 +72,7 @@ Several of the ideas i'm considering are:
 - [ ] Unit tests - soon as I figure out how to do tests for WASM work. 
 - [ ] Performance improvments in the image buffer copy - https://github.com/agnivade/shimmer/blob/c073303a81ab9a90b6fc14eb6d90c3a1b930025e/load_image_cb.go#L40 has been suggested as a place to start. 
 - [ ] Detect if nothing has changed for the frame, and if so, don't even recopy the buffer, saving yet more time.   May be usefull for layers that change less frequently. 
+- [ ] Multiple draw / render frames to fix the 'incomplete image' problem. 
 
 Others ? Feedback, suggestions etc welcome.  I can be found on Gophers Slack, #Webassembly channel. 
 
