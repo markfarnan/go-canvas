@@ -20,6 +20,6 @@ Compile with  GOOS=js GOARCH=wasm go build -o main.wasm
 Includes a Caddy configuration file to support WASM,  so will serve by just running 'caddy' in the demo directory and opening browser to http://localhost:8080
 
 
-Live Demo available at : https://markfarnan.github.io/go-canvas/docs
+Live Demo available at : https://markfarnan.github.io/go-canvas
 
 Feedback, suggestions etc welcome.  I can be found on Gophers Slack, #Webassembly channel. 
