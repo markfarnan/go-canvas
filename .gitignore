@@ -15,3 +15,7 @@
 *.wasm
 
 # Files from App
+
+# Special for Docs
+!/docs/*.wasm
+
