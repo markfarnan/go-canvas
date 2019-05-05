@@ -45,7 +45,7 @@ A simple way to cause the code to draw the frame on schedule, independant from t
 If however your image is only updated from either user input, or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  For all other cycles of the `requestAnimationFrame` it just copies the buffer over, and nothing changes. 
 
 
-## Demo
+# Demo
 A simple demo can be found in  ./demo directory.  
 This is a shamless rewrite of the 'Moving red Laser' demo by Martin Olsansky https://medium.freecodecamp.org/webassembly-with-golang-is-fun-b243c0e34f02
 
@@ -54,16 +54,16 @@ Compile with  `GOOS=js GOARCH=wasm go build -o main.wasm`
 
 Includes a Caddy configuration file to support WASM,  so will serve by just running 'caddy' in the demo directory and opening browser to http://localhost:8080
 
-
+## Live
 Live Demo available at : https://markfarnan.github.io/go-canvas
 
 
-##Future
+# Future
 This library was knocked up quickly after a weekend of investigation, and posted on request by the folks on #webassembly on Gophers Slack.  right now it is very v0.001, user beware !
 
 I intend to extend it further, time permitting, into a more fully fledged support for all things go-canvas-wasm related, using this image frame method.   
 
-Several of the ideas i'm considering are. 
+Several of the ideas i'm considering are: 
 - [ ] Support for layered canvas, at least 3 for 'background', 'action'  and 'user interaction'
 - [ ] Traps & helper functions for mouse interactions over the canvas
 - [ ] Unit tests - soon as I figure out how to do tests for WASM work. 
