@@ -23,6 +23,8 @@ import (
 	"github.com/llgcode/draw2d/draw2dimg"
 )
 
+type RenderFunc func(gc *draw2dimg.GraphicContext) bool
+
 type Canvas2d struct {
 	done chan struct{} // Used as part of 'run forever' in the render handler
 
@@ -44,6 +46,9 @@ type Canvas2d struct {
 	image    *image.RGBA               // The Shadow frame we actually draw on
 	font     *truetype.Font
 	fontData draw2d.FontData
+
+	reqID    js.Value // Storage of the current annimationFrame requestID - For Cancel
+	timeStep float64  // Min Time delay between frames. - Calculated as   maxFPS/1000
 }
 
 func NewCanvas2d(create bool) (*Canvas2d, error) {
@@ -106,9 +111,24 @@ func (c *Canvas2d) Set(canvas js.Value, width int, height int) {
 	fontCache.Store(c.fontData, c.font)
 
 	c.gctx.FontCache = fontCache
+}
 
-	// Kick off the render callback routine.
-	c.initFrameUpdate()
+// Starts the annimationFrame callbacks running.   (Recently seperated from Create / Set to give better control for when things start / stop)
+func (c *Canvas2d) Start(maxFPS float64, rf RenderFunc) {
+	c.SetFPS(maxFPS)
+	c.initFrameUpdate(rf)
+}
+
+// This needs to be called on an 'beforeUnload' trigger, to properly close out the render callback, and prevent browser errors on page Refresh
+func (c *Canvas2d) Stop() {
+	c.window.Call("cancelAnimationFrame", c.reqID)
+	c.done <- struct{}{}
+	close(c.done)
+}
+
+// Sets the maximum FPS (Frames per Second).  This can be changed on the fly and will take affect next frame.
+func (c *Canvas2d) SetFPS(maxFPS float64) {
+	c.timeStep = 1000 / maxFPS
 }
 
 // Get the Drawing context for the Canvas
@@ -125,13 +145,27 @@ func (c *Canvas2d) Width() int {
 }
 
 // handles calls from Render, and copies the image over.
-func (c *Canvas2d) initFrameUpdate() {
+func (c *Canvas2d) initFrameUpdate(rf RenderFunc) {
 	// Hold the callbacks without blocking
 	go func() {
 		var renderFrame js.Func
+		var lastTimestamp float64
+
 		renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
-			c.imgCopy()
-			js.Global().Call("requestAnimationFrame", renderFrame)
+
+			timestamp := args[0].Float()
+			if timestamp-lastTimestamp >= c.timeStep { // Constrain FPS
+				if rf != nil { // If required, call the requested render function, before copying the frame
+					if rf(c.gctx) { // Only copy the image back if RenderFunction returns TRUE. (i.e. stuff has changed.)  This allows Render to return false, saving time this cycle if nothing changed.  (Keep frame as before)
+						c.imgCopy()
+					}
+				} else { // Just do the copy, rendering must be being done elsewhere
+					c.imgCopy()
+				}
+				lastTimestamp = timestamp
+			}
+
+			c.reqID = js.Global().Call("requestAnimationFrame", renderFrame) // Captures the requestID to be used in Close / Cancel
 			return nil
 		})
 		defer renderFrame.Release()

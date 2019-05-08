@@ -21,6 +21,7 @@ import (
 	"image/color"
 	"time"
 
+	"github.com/llgcode/draw2d/draw2dimg"
 	"github.com/llgcode/draw2d/draw2dkit"
 	"github.com/markfarnan/go-canvas/canvas"
 )
@@ -43,10 +44,11 @@ func main() {
 	FrameRate := time.Second / renderDelay
 	println("Hello Browser FPS:", FrameRate)
 	cvs, _ = canvas.NewCanvas2d(true)
+	cvs.Start(60, Render)
 	height = float64(cvs.Height())
 	width = float64(cvs.Width())
 
-	go doEvery(renderDelay, Render) // Kick off the Render function as go routine as it never returns
+	//go doEvery(renderDelay, Render) // Kick off the Render function as go routine as it never returns
 	<-done
 }
 
@@ -59,9 +61,8 @@ func doEvery(d time.Duration, f func(time.Time)) {
 
 // This is called on a timer from 'doEvery'  to render the image / screen.
 // The render rate is totaly under the users control, and is seperated from the Browsers frame Rendering (which is handled inside the canvas2d class)
-func Render(t time.Time) {
+func Render(gc *draw2dimg.GraphicContext) bool {
 	// Get the painter drawing Context
-	gc := cvs.Gc()
 
 	if gs.laserX+gs.directionX > width-gs.laserSize || gs.laserX+gs.directionX < gs.laserSize {
 		gs.directionX = -gs.directionX
@@ -85,4 +86,6 @@ func Render(t time.Time) {
 	draw2dkit.Circle(gc, gs.laserX, gs.laserY, gs.laserSize)
 	gc.FillStroke()
 	gc.Close()
+
+	return true
 }
