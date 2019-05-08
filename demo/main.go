@@ -44,9 +44,11 @@ func main() {
 	FrameRate := time.Second / renderDelay
 	println("Hello Browser FPS:", FrameRate)
 	cvs, _ = canvas.NewCanvas2d(true)
-	cvs.Start(60, Render)
+
 	height = float64(cvs.Height())
 	width = float64(cvs.Width())
+
+	cvs.Start(60, Render)
 
 	//go doEvery(renderDelay, Render) // Kick off the Render function as go routine as it never returns
 	<-done
