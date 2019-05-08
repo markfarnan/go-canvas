@@ -24,29 +24,39 @@ laserCtx.Call("closePath")
 Downsides of this approach (for me at least),  are messy JS calls which can't easily be checked at compile time and forcing an full redraw every frame, even if nothing changed on that canvas or changes much slower than the requested frame rate. 
 
 ### go native way
-go-canvas seperates the frame drawing from the `requestAnimationFrame` and does all drawing with the go-wasm application, without calling JS.  It does this by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
+go-canvas has all drawing done nativley in G by creating an entirley seperate image buffer, which is drawn to using a 2D drawing library.  I'm currently using one from  https://github.com/llgcode/draw2d which provides most of the standard canvas primites and more.    This shadow Image buffer can be updated at whatever rate the developer deems appropriate, which may very well be slower than the browsers annimation rate. 
 
 This shadow Image buffer is then copied over to the browser canvas buffer during each `requestAnimationFrame` callback, at whatever rate the browser requests.  The handling of the callback and copy is done automatically within the library. 
+
+Secondly, this also allows the option of drawing to the imageBuffer, outside of the `requestAnimationFrame` callback if required.   After some testing it appears that it is still best to do the drawing within the `requestAnimationFrame` callback.   
+
+go-canvas provides serveral options to controll all this, and take care of the browser/dom interactions
+ - User specifes the go render/draw callback method when calling the START function.  This callback passes the graphical context to the render routine.
+ - Render routine can choose to return whether any drawing actually took place.  If it returns false, then the `requestAnimationFrame` callback does nothing, just returns immediatly, saving CPU cycles.  (No point to copy buffers, and redraw if nothing has changed)  This allows the drawing to be adaptive to the rate of data changes. 
+ - The 'start' function accepts a maxFPS parameter.  The library will automatically throttle the `requestAnimationFrame` callback to only do redraws or imagebuffer copies to the this max rate.  Note it MAY be slower depending ont he Render time, and the requirments of the browser doing other work.    When a tab is hidden, the browser regularly reduces and may even stop call to the animation callback.   No critical timing should be done in the render/draw routings. 
+ - You may pass 'nil' for the render function.  In this case all drawing happens totaly under the users control, outside of the library.  This may be more usefull in future when WASM supports proper threading.  Right now however, testing shows it is slower as all work is in the one thread, and you loose the scheduling benefits of the `requestAnimationFrame` call. 
 
 Drawing therefore, is pure **go**  i.e. 
 
 ```go
-gc := canvas.Gc()  // Grab the graphic context for drawing to shadow image frame
-// draws red 🔴 laser
-gc.SetFillColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
-gc.SetStrokeColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
+func Render(gc *draw2dimg.GraphicContext) bool {
+    // {some movement code removed for clarity, see the demo code for full function}
+    // draws red 🔴 laser
+    gc.SetFillColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
+    gc.SetStrokeColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
 
-gc.BeginPath()
-gc.ArcTo(gs.laserX, gs.laserY, gs.laserSize, gs.laserSize, 0, math.Pi*2)
-gc.FillStroke()
-gc.Close()
+    gc.BeginPath()
+    gc.ArcTo(gs.laserX, gs.laserY, gs.laserSize, gs.laserSize, 0, math.Pi*2)
+    gc.FillStroke()
+    gc.Close()
+return true  // Yes, we drew something, copy it over to the browser
 ```
-A simple way to cause the code to draw the frame on schedule, independant from the browsers callbacks, is to use `time.Tick`.  An example is in the demo app below. 
+If you do want to render outside the animation loop, a simple way to cause the code to draw the frame on schedule, independant from the browsers callbacks, is to use `time.Tick`.  An example is in the demo app below. 
 
-If however your image is only updated from user input or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  For all other cycles of the `requestAnimationFrame` it just copies the buffer over, and nothing changes. 
+If however your image is only updated from user input or some network activity, then it would be straightforward to fire the redraw only when required from these inputs.  This can be controlled within the Render function, by just returning FALSE at the start.   Nothing is draw, nor copied (saving CPU time) and the previous frames data remains.
 
 ### Known issues !
-There is currently a likley race condition for long draw functions, where the `requestAnimationFrame` may get a partially completed image buffer.  This is more likley the longer the user render operation takes.    Currently think how best to handle this, ideally without locks. 
+~~There is currently a likley race condition for long draw functions, where the `requestAnimationFrame` may get a partially completed image buffer.  This is more likley the longer the user render operation takes.    Currently think how best to handle this, ideally without locks. ~~  Turns out this is not an issue, due to the single threaded nature.  Eventually if drawing is in a seperate thread, this will have to be handled. 
 
 
 # Demo
@@ -72,8 +82,10 @@ Several of the ideas i'm considering are:
 - [ ] Traps & helper functions for mouse interactions over the canvas
 - [ ] Unit tests - soon as I figure out how to do tests for WASM work. 
 - [ ] Performance improvments in the image buffer copy - https://github.com/agnivade/shimmer/blob/c073303a81ab9a90b6fc14eb6d90c3a1b930025e/load_image_cb.go#L40 has been suggested as a place to start. 
-- [ ] Detect if nothing has changed for the frame, and if so, don't even recopy the buffer, saving yet more time.   May be usefull for layers that change less frequently. 
-- [ ] Multiple draw / render frames to fix the 'incomplete image' problem. 
+- [X] Detect if nothing has changed for the frame, and if so, don't even recopy the buffer, saving yet more time.   May be usefull for layers that change less frequently.  
+- [X] Multiple draw / render frames to fix the 'incomplete image' problem.  -- Not actually a problem
+- [X] Tidy up the close/end frame functionality to properly release resources on page unload, and prevent 'broweser reload errors' due to missing annimation callback function.  
+- [ ] Add FPS Calculater metric
 
 Others ? Feedback, suggestions etc welcome.  I can be found on Gophers Slack, #Webassembly channel. 
 

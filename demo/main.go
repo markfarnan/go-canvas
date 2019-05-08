@@ -62,7 +62,7 @@ func doEvery(d time.Duration, f func(time.Time)) {
 // This is called on a timer from 'doEvery'  to render the image / screen.
 // The render rate is totaly under the users control, and is seperated from the Browsers frame Rendering (which is handled inside the canvas2d class)
 func Render(gc *draw2dimg.GraphicContext) bool {
-	// Get the painter drawing Context
+
 
 	if gs.laserX+gs.directionX > width-gs.laserSize || gs.laserX+gs.directionX < gs.laserSize {
 		gs.directionX = -gs.directionX
