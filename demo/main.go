@@ -19,6 +19,7 @@ package main
 
 import (
 	"image/color"
+	"syscall/js"
 	"time"
 
 	"github.com/llgcode/draw2d/draw2dimg"
@@ -43,7 +44,10 @@ func main() {
 
 	FrameRate := time.Second / renderDelay
 	println("Hello Browser FPS:", FrameRate)
-	cvs, _ = canvas.NewCanvas2d(true)
+	//cvs, _ = canvas.NewCanvas2d(true)
+
+	cvs, _ = canvas.NewCanvas2d(false)
+	cvs.Create(int(js.Global().Get("innerWidth").Float()*0.9), int(js.Global().Get("innerHeight").Float()*0.9)) // Make Canvas 90% of window size.  For testing rendering canvas smaller than full windows
 
 	height = float64(cvs.Height())
 	width = float64(cvs.Width())
