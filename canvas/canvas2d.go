@@ -29,10 +29,9 @@ type Canvas2d struct {
 	done chan struct{} // Used as part of 'run forever' in the render handler
 
 	// DOM properties
-	window     js.Value
-	doc        js.Value
-	body       js.Value
-	windowSize struct{ w, h float64 }
+	window js.Value
+	doc    js.Value
+	body   js.Value
 
 	// Canvas properties
 	canvas js.Value
@@ -59,12 +58,9 @@ func NewCanvas2d(create bool) (*Canvas2d, error) {
 	c.doc = c.window.Get("document")
 	c.body = c.doc.Get("body")
 
-	c.windowSize.h = c.window.Get("innerHeight").Float()
-	c.windowSize.w = c.window.Get("innerWidth").Float()
-
 	// If create, make a canvas that fills the windows
 	if create {
-		c.Create(int(c.windowSize.w), int(c.windowSize.h))
+		c.Create(int(c.window.Get("innerWidth").Int()), int(c.window.Get("innerHeight").Int()))
 	}
 
 	return &c, nil
@@ -94,7 +90,7 @@ func (c *Canvas2d) Set(canvas js.Value, width int, height int) {
 
 	// Setup the 2D Drawing context
 	c.ctx = c.canvas.Call("getContext", "2d")
-	c.im = c.ctx.Call("createImageData", c.windowSize.w, c.windowSize.h) // Note Width, then Height
+	c.im = c.ctx.Call("createImageData", width, height) // Note Width, then Height
 
 	c.image = image.NewRGBA(image.Rect(0, 0, width, height))
 	c.gctx = draw2dimg.NewGraphicContext(c.image)
