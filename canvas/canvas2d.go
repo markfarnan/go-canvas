@@ -177,8 +177,8 @@ func (c *Canvas2d) initFrameUpdate(rf RenderFunc) {
 // Does the actuall copy over of the image data for the 'render' call.
 func (c *Canvas2d) imgCopy() {
 	// golang buffer
-	ta := js.TypedArrayOf(c.image.Pix)
-	c.im.Get("data").Call("set", ta)
-	ta.Release()
+	var array js.Value = js.Global().Get("Uint8Array").New(len(c.image.Pix))
+	js.CopyBytesToJS(array, c.image.Pix)
+	c.im.Get("data").Call("set", array)
 	c.ctx.Call("putImageData", c.im, 0, 0)
 }
