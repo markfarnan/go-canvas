@@ -72,7 +72,7 @@ Includes a Caddy configuration file to support WASM, so will serve by just runni
 Live Demo available at: https://markfarnan.github.io/go-canvas
 
 # Future
-This library was written after a weekend of investigation and posted on request for the folks on #webassembly on Gophers Slack. Right now it is very v0.001, user beware!
+This library was written after a weekend of investigation and posted on request for the folks on #webassembly on Gophers Slack. 
 
 I intend to extend it further, time permitting, into fully fledged support package for all things go-canvas-wasm related, using this image frame method. 
 
@@ -83,9 +83,9 @@ Several of the ideas I'm considering are:
 - [ ] Performance improvements in the image buffer copy - https://github.com/agnivade/shimmer/blob/c073303a81ab9a90b6fc14eb6d90c3a1b930025e/load_image_cb.go#L40 has been suggested as a place to start. 
 - [X] Detect if nothing has changed for the frame, and if so, don't even recopy the buffer, saving yet more time. May be useful for layers that change less frequently. 
 - [X] Multiple draw / render frames to fix the 'incomplete image' problem. -- Not actually a problem
-- [X] Tidy up the close/end frame functionality to properly release resources on page unload and prevent 'browser reload errors' due to missing animation callback function. 
+- [X] Tidy up the close/end frame functionality to properly release resources on page unload and prevent 'browser reload errors' due to missing animation callback function.  - [X] Update for Go 1.13 and Go Modules
 - [ ] Add FPS Calculator metric
 
 Others ? Feedback, suggestions etc. welcome. I can be found on Gophers Slack, #Webassembly channel. 
 
-Mark Farnan, May 2019
+Mark Farnan, February 2020
