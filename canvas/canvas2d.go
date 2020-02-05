@@ -34,11 +34,11 @@ type Canvas2d struct {
 	body   js.Value
 
 	// Canvas properties
-	canvas js.Value
-	ctx    js.Value
-	im     js.Value
-	width  int
-	height int
+	canvas  js.Value
+	ctx     js.Value
+	imgData js.Value
+	width   int
+	height  int
 
 	// Drawing Context
 	gctx     *draw2dimg.GraphicContext // Graphic Context
@@ -48,6 +48,8 @@ type Canvas2d struct {
 
 	reqID    js.Value // Storage of the current annimationFrame requestID - For Cancel
 	timeStep float64  // Min Time delay between frames. - Calculated as   maxFPS/1000
+
+	copybuff js.Value
 }
 
 func NewCanvas2d(create bool) (*Canvas2d, error) {
@@ -90,9 +92,10 @@ func (c *Canvas2d) Set(canvas js.Value, width int, height int) {
 
 	// Setup the 2D Drawing context
 	c.ctx = c.canvas.Call("getContext", "2d")
-	c.im = c.ctx.Call("createImageData", width, height) // Note Width, then Height
-
+	c.imgData = c.ctx.Call("createImageData", width, height) // Note Width, then Height
 	c.image = image.NewRGBA(image.Rect(0, 0, width, height))
+	c.copybuff = js.Global().Get("Uint8Array").New(len(c.image.Pix)) // Static JS buffer for copying data out to JS. Defined once and re-used to save on un-needed allocations
+
 	c.gctx = draw2dimg.NewGraphicContext(c.image)
 
 	// init font
@@ -172,9 +175,10 @@ func (c *Canvas2d) initFrameUpdate(rf RenderFunc) {
 
 // Does the actuall copy over of the image data for the 'render' call.
 func (c *Canvas2d) imgCopy() {
-	// golang buffer
-	var array js.Value = js.Global().Get("Uint8Array").New(len(c.image.Pix))
-	js.CopyBytesToJS(array, c.image.Pix)
-	c.im.Get("data").Call("set", array)
-	c.ctx.Call("putImageData", c.im, 0, 0)
+	// TODO:  This currently does multiple data copies.   go image buffer -> JS Uint8Array,   Then JS Uint8Array -> ImageData,  then ImageData into the Canvas.
+	// Would like to eliminate at least one of them, however currently CopyBytesToJS only supports Uint8Array  rather than the Uint8ClampedArray of ImageData.
+
+	js.CopyBytesToJS(c.copybuff, c.image.Pix)
+	c.imgData.Get("data").Call("set", c.copybuff)
+	c.ctx.Call("putImageData", c.imgData, 0, 0)
 }
