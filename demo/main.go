@@ -82,8 +82,8 @@ func Render(gc *draw2dimg.GraphicContext) bool {
 	gs.laserY += gs.directionY
 
 	// draws red 🔴 laser
-	gc.SetFillColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
-	gc.SetStrokeColor(color.RGBA{0xff, 0x00, 0x00, 0xff})
+	gc.SetFillColor(color.RGBA{0xff, 0x00, 0xff, 0xff})
+	gc.SetStrokeColor(color.RGBA{0xff, 0x00, 0xff, 0xff})
 
 	gc.BeginPath()
 	//gc.ArcTo(gs.laserX, gs.laserY, gs.laserSize, gs.laserSize, 0, math.Pi*2)
