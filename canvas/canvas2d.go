@@ -18,8 +18,6 @@ import (
 	"image"
 	"syscall/js"
 
-	"github.com/golang/freetype/truetype"
-	"github.com/llgcode/draw2d"
 	"github.com/llgcode/draw2d/draw2dimg"
 )
 
@@ -41,10 +39,8 @@ type Canvas2d struct {
 	height  int
 
 	// Drawing Context
-	gctx     *draw2dimg.GraphicContext // Graphic Context
-	image    *image.RGBA               // The Shadow frame we actually draw on
-	font     *truetype.Font
-	fontData draw2d.FontData
+	gctx  *draw2dimg.GraphicContext // Graphic Context
+	image *image.RGBA               // The Shadow frame we actually draw on
 
 	reqID    js.Value // Storage of the current annimationFrame requestID - For Cancel
 	timeStep float64  // Min Time delay between frames. - Calculated as   maxFPS/1000
@@ -98,18 +94,6 @@ func (c *Canvas2d) Set(canvas js.Value, width int, height int) {
 
 	c.gctx = draw2dimg.NewGraphicContext(c.image)
 
-	// init font
-	c.font, _ = truetype.Parse(FontData["font.ttf"])
-
-	c.fontData = draw2d.FontData{
-		Name:   "roboto",
-		Family: draw2d.FontFamilySans,
-		Style:  draw2d.FontStyleNormal,
-	}
-	fontCache := &FontCache{}
-	fontCache.Store(c.fontData, c.font)
-
-	c.gctx.FontCache = fontCache
 }
 
 // Starts the annimationFrame callbacks running.   (Recently seperated from Create / Set to give better control for when things start / stop)
