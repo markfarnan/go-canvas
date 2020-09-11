@@ -143,14 +143,28 @@ func (c *Canvas2d) Width() int {
 	return c.width
 }
 
+func (c *Canvas2d) Canvas() js.Value {
+	return c.canvas
+}
+
 // handles calls from Render, and copies the image over.
 func (c *Canvas2d) initFrameUpdate(rf RenderFunc) {
 	// Hold the callbacks without blocking
 	go func() {
 		var renderFrame js.Func
 		var lastTimestamp float64
+		var lastTS float64
+
+		div := c.doc.Call("getElementById", "fps")
 
 		renderFrame = js.FuncOf(func(this js.Value, args []js.Value) interface{} {
+
+			tsnow := c.window.Get("performance").Call("now").Float()
+			delta := tsnow - lastTS
+			fps := 1 / delta * 1000
+			lastTS = tsnow
+
+			div.Set("innerHTML", fps)
 
 			timestamp := args[0].Float()
 			if timestamp-lastTimestamp >= c.timeStep { // Constrain FPS

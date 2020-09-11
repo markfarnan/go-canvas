@@ -1,0 +1,50 @@
+<html>
+
+<head>
+	<meta charset="utf-8" />
+	<title>Go WebAssembly - Plot</title>
+	<meta name="author" content="Mark Farnan" />
+	<meta name="description" content="Prototype PLotter with GO, Canvas and WebAssembly" />
+	<meta name="theme-color" content="#000000" />
+	<meta name="viewport" content="width=device-width,initial-scale=1.0" />
+	<style>
+		body {
+			height: 100%;
+			width: 100%;
+			padding: 0;
+			margin: 0;
+			background-color: #FFFFFF;
+			color: #000000;
+			font-family: Arial, Helvetica, sans-serif
+		}
+	</style>
+
+	<!--
+	Add the following polyfill for Microsoft Edge 17/18 support:
+	<script src="https://cdn.jsdelivr.net/npm/text-encoding@0.7.0/lib/encoding.min.js"></script>
+	(see https://caniuse.com/#feat=textencoder)
+	-->
+	<script type="text/javascript" src="./wasm_exec.js"></script>
+	<script>
+		if (!WebAssembly.instantiateStreaming) { // polyfill
+			WebAssembly.instantiateStreaming = async (resp, importObject) => {
+				const source = await (await resp).arrayBuffer();
+				return await WebAssembly.instantiate(source, importObject);
+			};
+		}
+
+		const go = new Go();
+		WebAssembly.instantiateStreaming(fetch('main.wasm'), go.importObject).then(res => {
+			go.run(res.instance)
+		})
+	</script>
+	<style>
+	</style>
+</head>
+
+<body>
+
+	FPS:<div id="fps">Never</div>
+</body>
+
+</html>
