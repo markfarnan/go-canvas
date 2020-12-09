@@ -145,6 +145,7 @@ func (c *Canvas2d) Width() int {
 
 // handles calls from Render, and copies the image over.
 func (c *Canvas2d) initFrameUpdate(rf RenderFunc) {
+	c.done = make(chan struct{})
 	// Hold the callbacks without blocking
 	go func() {
 		var renderFrame js.Func
